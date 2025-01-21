@@ -9,12 +9,15 @@ terraform-microservice
 ├── main.tf                # Main Terraform configuration for the EC2 instance
 ├── variables.tf           # Input variables for the Terraform configuration
 ├── outputs.tf             # Output values after infrastructure creation
+├── keypair.tf             # Configuration for creating the SSH key pair
+├── network.tf             # Configuration for setting up the VPC, subnets, and security groups
 ├── ec2
 │   ├── user_data.sh       # Shell script for configuring the EC2 instance on startup
 ├── ami
 │   ├── main.tf            # Configuration for creating an AMI from the EC2 instance
 │   ├── variables.tf       # Input variables for the AMI creation process
 │   ├── outputs.tf         # Output values for the AMI configuration
+├── .gitignore             # Git ignore file 
 └── README.md              # Project documentation
 ```
 
