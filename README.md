@@ -12,5 +12,5 @@ Hello, World!
 
 ## Image
 
-![Hola Mundo](images/holamundo.png)
+![Hola Mundo](holamundo.png)
 
