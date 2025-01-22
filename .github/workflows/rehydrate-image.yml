@@ -40,6 +40,10 @@ jobs:
       with:
         terraform_version: 1.0.0
 
+    - name: Delete existing key pair
+      run: |
+        aws ec2 delete-key-pair --key-name las_llaves || true
+
     - name: Initialize Terraform
       run: terraform init
       working-directory: terraform-microservice
@@ -53,7 +57,7 @@ jobs:
       working-directory: terraform-microservice
 
     - name: Apply Terraform
-      if: github.event_name == 'push'
+      if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
       run: terraform apply -auto-approve tfplan
       working-directory: terraform-microservice
 
