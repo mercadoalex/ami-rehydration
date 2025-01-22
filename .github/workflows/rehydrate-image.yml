@@ -7,7 +7,8 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
+  workflow_dispatch: 
+
 jobs:
   setup-aws:
     runs-on: ubuntu-latest
@@ -46,6 +47,17 @@ jobs:
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: 1.0.0
+
+    - name: Delete previous AMI
+      run: |
+        AMI_ID=$(aws ec2 describe-images --owners self --filters "Name=name,Values=my-ami-*" --query "Images[0].ImageId" --output text)
+        if [ "$AMI_ID" != "None" ]; then
+          SNAPSHOT_ID=$(aws ec2 describe-images --image-ids $AMI_ID --query "Images[0].BlockDeviceMappings[0].Ebs.SnapshotId" --output text)
+          aws ec2 deregister-image --image-id $AMI_ID
+          aws ec2 delete-snapshot --snapshot-id $SNAPSHOT_ID
+        else
+          echo "No previous AMI found. OK to go."
+        fi
 
     - name: Initialize Terraform
       run: terraform init

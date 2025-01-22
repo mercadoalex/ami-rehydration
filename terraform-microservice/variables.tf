@@ -33,7 +33,8 @@ variable "source_instance_id" {
 variable "ami_name" {
   description = "The name of the AMI"
   type        = string
-  default     = "my-ami"
+  #default     = "my-ami"
+  default     = "my-ami-${timestamp()}"
 }
 
 variable "ami_description" {
