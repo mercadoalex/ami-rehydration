@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   setup-aws:
@@ -21,7 +21,7 @@ jobs:
         echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
         echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
         echo "[profile experiment]" > ~/.aws/config
-        echo "region = us-west-1" >> ~/.aws/config
+        echo "region = ${{ vars.AWS_DEFAULT_REGION }}" >> ~/.aws/config
 
   rehydrate:
     runs-on: ubuntu-latest
@@ -44,6 +44,10 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         chmod 644 ~/.ssh/id_rsa.pub
 
+    - name: Generate unique AMI name
+      id: ami_name
+      run: echo "AMI_NAME=my-ami-$(date +%s)" >> $GITHUB_ENV
+
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
       with:
@@ -51,11 +55,11 @@ jobs:
 
     - name: Delete previous AMI
       run: |
-        AMI_ID=$(aws ec2 describe-images --owners self --filters "Name=name,Values=my-ami-*" --query "Images[0].ImageId" --output text)
+        AMI_ID=$(aws ec2 describe-images --owners self --filters "Name=name,Values=my-ami-*" --region ${{ vars.AWS_DEFAULT_REGION }} --query "Images[0].ImageId" --output text)
         if [ "$AMI_ID" != "None" ]; then
-          SNAPSHOT_ID=$(aws ec2 describe-images --image-ids $AMI_ID --query "Images[0].BlockDeviceMappings[0].Ebs.SnapshotId" --output text)
-          aws ec2 deregister-image --image-id $AMI_ID
-          aws ec2 delete-snapshot --snapshot-id $SNAPSHOT_ID
+          SNAPSHOT_ID=$(aws ec2 describe-images --image-ids $AMI_ID --region ${{ vars.AWS_DEFAULT_REGION }} --query "Images[0].BlockDeviceMappings[0].Ebs.SnapshotId" --output text)
+          aws ec2 deregister-image --image-id $AMI_ID --region ${{ vars.AWS_DEFAULT_REGION }}
+          aws ec2 delete-snapshot --snapshot-id $SNAPSHOT_ID --region ${{ vars.AWS_DEFAULT_REGION }}
         else
           echo "No previous AMI found. OK to go."
         fi
@@ -69,7 +73,7 @@ jobs:
       working-directory: terraform-microservice
 
     - name: Plan Terraform
-      run: terraform plan -out=tfplan
+      run: terraform plan -var="ami_name=${{ env.AMI_NAME }}" -out=tfplan
       working-directory: terraform-microservice
 
     - name: Apply Terraform
