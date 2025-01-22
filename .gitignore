@@ -37,3 +37,6 @@ the_damm_keys.pub
 
 # Ignore macOS system files
 .DS_Store
+
+#Ignore terraform keypair file 
+keypair.tf
