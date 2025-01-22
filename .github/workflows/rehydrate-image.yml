@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
+  workflow_dispatch:  
 
 jobs:
   setup-aws:
@@ -35,14 +35,18 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Copy SSH keys
+      run: |
+        mkdir -p ~/.ssh
+        cp terraform-microservice/las_llaves ~/.ssh/id_rsa
+        cp terraform-microservice/las_llaves.pub ~/.ssh/id_rsa.pub
+        chmod 600 ~/.ssh/id_rsa
+        chmod 644 ~/.ssh/id_rsa.pub
+
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: 1.0.0
-
-    - name: Delete existing key pair
-      run: |
-        aws ec2 delete-key-pair --key-name las_llaves || true
 
     - name: Initialize Terraform
       run: terraform init
